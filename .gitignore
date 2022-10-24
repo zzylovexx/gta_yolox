@@ -223,5 +223,6 @@ events.out.tfevents*
 /coco128/*
 coco128.zip
 /gtadataset/*
+assets/*.jpg 
+assets/*.png
 !/gtadataset/yolo2coco.ipynb
-!/gtadataset/test/17.jpg
