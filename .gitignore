@@ -220,5 +220,8 @@ events.out.tfevents*
 # vim
 .vim
 #mydataset
-coco128
-gtadataset
+/coco128/*
+coco128.zip
+/gtadataset/*
+!/gtadataset/yolo2coco.ipynb
+!/gtadataset/test/17.jpg
