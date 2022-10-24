@@ -10,7 +10,9 @@ from loguru import logger
 import cv2
 
 import torch
-
+#path is up to my computer path sometimes need it and sometimes don't very intersting
+import sys
+sys.path.append(r'/home/haha/桌面/video_stream_and_track/hw2/YOLOX')
 from yolox.data.data_augment import ValTransform
 from yolox.data.datasets import COCO_CLASSES
 from yolox.exp import get_exp
@@ -33,6 +35,7 @@ def make_parser():
     parser.add_argument("--camid", type=int, default=0, help="webcam demo camera id")
     parser.add_argument(
         "--save_result",
+        default="",
         action="store_true",
         help="whether to save the inference result of image/video",
     )
@@ -41,14 +44,16 @@ def make_parser():
     parser.add_argument(
         "-f",
         "--exp_file",
-        default=None,
+        #default=None,
+        default="exps/example/custom/yolox_s.py",
         type=str,
         help="please input your experiment description file",
     )
-    parser.add_argument("-c", "--ckpt", default=None, type=str, help="ckpt for eval")
+    parser.add_argument("-c", "--ckpt", default="yolox_s.pth", type=str, help="ckpt for eval")
     parser.add_argument(
         "--device",
         default="cpu",
+        #default="gpu",
         type=str,
         help="device to run our model, can either be cpu or gpu",
     )
@@ -131,13 +136,13 @@ class Predictor(object):
 
     def inference(self, img):
         img_info = {"id": 0}
-        if isinstance(img, str):
+        if isinstance(img, str): #is input img is string type
             img_info["file_name"] = os.path.basename(img)
             img = cv2.imread(img)
         else:
             img_info["file_name"] = None
 
-        height, width = img.shape[:2]
+        height, width = img.shape[:2]#(height ,weight,chnnel)
         img_info["height"] = height
         img_info["width"] = width
         img_info["raw_img"] = img
@@ -162,7 +167,7 @@ class Predictor(object):
                 outputs, self.num_classes, self.confthre,
                 self.nmsthre, class_agnostic=True
             )
-            logger.info("Infer time: {:.4f}s".format(time.time() - t0))
+            logger.info("Infer time: {:.4f}s".format(time.time() - t0))#test infer time
         return outputs, img_info
 
     def visual(self, output, img_info, cls_conf=0.35):
@@ -245,12 +250,12 @@ def main(exp, args):
     if not args.experiment_name:
         args.experiment_name = exp.exp_name
 
-    file_name = os.path.join(exp.output_dir, args.experiment_name)
+    file_name = os.path.join(exp.output_dir, args.experiment_name) #save file path
     os.makedirs(file_name, exist_ok=True)
 
     vis_folder = None
     if args.save_result:
-        vis_folder = os.path.join(file_name, "vis_res")
+        vis_folder = os.path.join(file_name, "vis_res") #add a sub file path
         os.makedirs(vis_folder, exist_ok=True)
 
     if args.trt:
@@ -315,6 +320,18 @@ def main(exp, args):
 
 if __name__ == "__main__":
     args = make_parser().parse_args()
+    #new arg
+   
+    # args.path="assets/dog.jpg"
+    # args.save_result=""
+    # args.conf=0.25
+    # args.nms=0.5
+    # args.tsize=640
+    # args.result="gpu"
+    # args.exp_file="exps/example/custom/yolox_s.py"
+    # args.ckpt="YOLOX_outputs/yolox_s/best_ckpt.pth"
+  
+    #end new arg
     exp = get_exp(args.exp_file, args.name)
 
     main(exp, args)

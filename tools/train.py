@@ -30,14 +30,14 @@ def make_parser():
         type=str,
         help="url used to set up distributed training",
     )
-    parser.add_argument("-b", "--batch-size", type=int, default=64, help="batch size")
+    parser.add_argument("-b", "--batch-size", type=int, default=8, help="batch size")
     parser.add_argument(
-        "-d", "--devices", default=None, type=int, help="device for training"
+        "-d", "--devices", default=1, type=int, help="device for training"
     )
     parser.add_argument(
         "-f",
         "--exp_file",
-        default=None,
+        default='exps/example/custom/yolox_s.py',
         type=str,
         help="plz input your experiment description file",
     )
@@ -110,7 +110,7 @@ def main(exp: Exp, args):
         )
 
     # set environment variables for distributed training
-    configure_nccl()
+    configure_nccl() #about multi gpu
     configure_omp()
     cudnn.benchmark = True
 
