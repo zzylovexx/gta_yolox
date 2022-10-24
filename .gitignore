@@ -219,3 +219,6 @@ events.out.tfevents*
 
 # vim
 .vim
+#mydataset
+coco128
+gtadataset
