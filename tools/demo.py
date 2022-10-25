@@ -30,7 +30,7 @@ def make_parser():
     parser.add_argument("-n", "--name", type=str, default=None, help="model name")
 
     parser.add_argument(
-        "--path", default="./assets/dog.jpg", help="path to images or video"
+        "--path", default="./gtadataset", help="path to images or video"
     )
     parser.add_argument("--camid", type=int, default=0, help="webcam demo camera id")
     parser.add_argument(
@@ -49,11 +49,11 @@ def make_parser():
         type=str,
         help="please input your experiment description file",
     )
-    parser.add_argument("-c", "--ckpt", default="yolox_s.pth", type=str, help="ckpt for eval")
+    parser.add_argument("-c", "--ckpt", default="YOLOX_outputs/yolox_s/best_ckpt.pth", type=str, help="ckpt for eval")
     parser.add_argument(
         "--device",
-        default="cpu",
-        #default="gpu",
+        default="gpu",
+        #default="cpu",
         type=str,
         help="device to run our model, can either be cpu or gpu",
     )
@@ -183,6 +183,7 @@ class Predictor(object):
         bboxes /= ratio
 
         cls = output[:, 6]
+        print(cls)
         scores = output[:, 4] * output[:, 5]
 
         vis_res = vis(img, bboxes, scores, cls, cls_conf, self.cls_names)
