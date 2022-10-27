@@ -208,8 +208,8 @@ class Focus(nn.Module):
             dim=1,
         )
         return self.conv(x)
-        
-class SELayer(nn.Module):
+
+class SELayer(nn.Module): #seblock is what i add
     def __init__(self, channel, reduction=16):
         super(SELayer, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
@@ -225,4 +225,4 @@ class SELayer(nn.Module):
         y = self.fc(y)
         y = self.fc(y).view(b, c, 1, 1)
         
-        return x * y.expand_as(x)
+        return x * y.expand_as(x) 
