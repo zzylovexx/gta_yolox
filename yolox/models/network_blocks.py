@@ -64,7 +64,7 @@ class DWConv(nn.Module):
             in_channels,
             ksize=ksize,
             stride=stride,
-            groups=in_channels,
+            groups=in_channels, #depth wise convolution
             act=act,
         )
         self.pconv = BaseConv(
@@ -166,7 +166,7 @@ class CSPLayer(nn.Module):
         # ch_in, ch_out, number, shortcut, groups, expansion
         super().__init__()
         hidden_channels = int(out_channels * expansion)  # hidden channels
-        self.conv1 = BaseConv(in_channels, hidden_channels, 1, stride=1, act=act)
+        self.conv1 = BaseConv(in_channels, hidden_channels, 1, stride=1, act=act)# hidden channel is half of outchannel
         self.conv2 = BaseConv(in_channels, hidden_channels, 1, stride=1, act=act)
         self.conv3 = BaseConv(2 * hidden_channels, out_channels, 1, stride=1, act=act)
         module_list = [
@@ -208,3 +208,21 @@ class Focus(nn.Module):
             dim=1,
         )
         return self.conv(x)
+        
+class SELayer(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SELayer, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid()
+        )
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y)
+        y = self.fc(y).view(b, c, 1, 1)
+        
+        return x * y.expand_as(x)
