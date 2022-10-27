@@ -4,7 +4,7 @@
 
 from torch import nn
 
-from .network_blocks import BaseConv, CSPLayer, DWConv, Focus, ResLayer, SPPBottleneck
+from .network_blocks import BaseConv, CSPLayer, DWConv, Focus, ResLayer, SPPBottleneck,SELayer
 
 
 class Darknet(nn.Module):
@@ -108,8 +108,8 @@ class CSPDarknet(nn.Module):
         self.out_features = out_features
         Conv = DWConv if depthwise else BaseConv
 
-        base_channels = int(wid_mul * 64)  # 64
-        base_depth = max(round(dep_mul * 3), 1)  # 3
+        base_channels = int(wid_mul * 64)  # 64 #in mycase is 32 because my self.width=0.5
+        base_depth = max(round(dep_mul * 3), 1)  # 3 in my cae is 1 because my self.depth is 0.33
 
         # stem
         self.stem = Focus(3, base_channels, ksize=3, act=act)
@@ -162,6 +162,10 @@ class CSPDarknet(nn.Module):
                 depthwise=depthwise,
                 act=act,
             ),
+            SELayer(
+                base_channels * 16
+            ),
+
         )
 
     def forward(self, x):
