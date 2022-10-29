@@ -225,4 +225,5 @@ coco128.zip
 /gtadataset/*
 assets/*.jpg 
 assets/*.png
-!/gtadataset/yolo2coco.ipynb
+!gtadataset/yolo2coco.ipynb
+!gtadataset/val2txt.py
