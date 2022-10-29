@@ -4,15 +4,19 @@
 
 import argparse
 import os
+from pickle import TRUE
 import time
 from loguru import logger
 
 import cv2
+from matplotlib import test
+from numpy import True_
 
 import torch
 #path is up to my computer path sometimes need it and sometimes don't very intersting
 import sys
-sys.path.append(r'/home/haha/桌面/video_stream_and_track/hw2/YOLOX')
+#sys.path.append('../')
+#sys.path.append(r'/home/haha/桌面/video_stream_and_track/hw2/YOLOX')
 from yolox.data.data_augment import ValTransform
 from yolox.data.datasets import COCO_CLASSES
 from yolox.exp import get_exp
@@ -24,13 +28,13 @@ IMAGE_EXT = [".jpg", ".jpeg", ".webp", ".bmp", ".png"]
 def make_parser():
     parser = argparse.ArgumentParser("YOLOX Demo!")
     parser.add_argument(
-        "demo", default="image", help="demo type, eg. image, video and webcam"
+        "-demo", default="image", help="demo type, eg. image, video and webcam"
     )
     parser.add_argument("-expn", "--experiment-name", type=str, default=None)
     parser.add_argument("-n", "--name", type=str, default=None, help="model name")
 
     parser.add_argument(
-        "--path", default="./gtadataset", help="path to images or video"
+        "--path", default="gtadataset/val/", help="path to images or video"
     )
     parser.add_argument("--camid", type=int, default=0, help="webcam demo camera id")
     parser.add_argument(
@@ -49,7 +53,7 @@ def make_parser():
         type=str,
         help="please input your experiment description file",
     )
-    parser.add_argument("-c", "--ckpt", default="YOLOX_outputs/yolox_s/best_ckpt.pth", type=str, help="ckpt for eval")
+    parser.add_argument("-c", "--ckpt", default="YOLOX_outputs/yolox_s/se_best.pth", type=str, help="ckpt for eval")
     parser.add_argument(
         "--device",
         default="gpu",
@@ -87,6 +91,11 @@ def make_parser():
         default=False,
         action="store_true",
         help="Using TensorRT model for testing.",
+    )
+    parser.add_argument(
+        "--savetxt",
+        default=False,
+        help="save txt or not"
     )
     return parser
 
@@ -181,16 +190,18 @@ class Predictor(object):
 
         # preprocessing: resize
         bboxes /= ratio
+        #print(bboxes)
 
         cls = output[:, 6]
-        print(cls)
+        #print(cls)
         scores = output[:, 4] * output[:, 5]
+        #print(type(scores))
 
         vis_res = vis(img, bboxes, scores, cls, cls_conf, self.cls_names)
-        return vis_res
+        return vis_res,cls,scores,bboxes
 
 
-def image_demo(predictor, vis_folder, path, current_time, save_result):
+def image_demo(predictor, vis_folder, path, current_time, save_result,txt_folder):
     if os.path.isdir(path):
         files = get_image_list(path)
     else:
@@ -198,15 +209,31 @@ def image_demo(predictor, vis_folder, path, current_time, save_result):
     files.sort()
     for image_name in files:
         outputs, img_info = predictor.inference(image_name)
-        result_image = predictor.visual(outputs[0], img_info, predictor.confthre)
+        result_image,cls,scores,bboxes = predictor.visual(outputs[0], img_info, predictor.confthre)
+        bboxes=bboxes.numpy().astype('uint64')
         if save_result:
-            save_folder = os.path.join(
-                vis_folder, time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
-            )
+            # save_folder = os.path.join(
+            #     vis_folder, time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
+            # )
+            save_folder = os.path.join(vis_folder, "picfolder")
             os.makedirs(save_folder, exist_ok=True)
             save_file_name = os.path.join(save_folder, os.path.basename(image_name))
             logger.info("Saving detection result in {}".format(save_file_name))
             cv2.imwrite(save_file_name, result_image)
+        if (args.savetxt):
+            savetxt_folder = os.path.join(txt_folder, "SEtest") #savedir_path
+            os.makedirs(savetxt_folder, exist_ok=True)
+            save_txt_name = os.path.join(savetxt_folder, os.path.basename(image_name)).replace('.jpg','.txt')
+            txtfilewriter = open(save_txt_name, 'w')
+            for i in range(len(bboxes)):
+                txtfilewriter.write(str(int(cls[i].item()))+' ')
+                txtfilewriter.write(str(scores[i].item())+' ')
+                txtfilewriter.write(str(bboxes[i][0])+' ')
+                txtfilewriter.write(str(bboxes[i][1])+' ')
+                txtfilewriter.write(str(bboxes[i][2])+' ')
+                txtfilewriter.write(str(bboxes[i][3]))
+                txtfilewriter.write('\n')
+            logger.info("saving txt to {}".format(save_txt_name))
         ch = cv2.waitKey(0)
         if ch == 27 or ch == ord("q") or ch == ord("Q"):
             break
@@ -258,6 +285,11 @@ def main(exp, args):
     if args.save_result:
         vis_folder = os.path.join(file_name, "vis_res") #add a sub file path
         os.makedirs(vis_folder, exist_ok=True)
+    txt_folder=None
+    if args.savetxt:
+        txt_folder = os.path.join('evaluatedata', "test")
+        os.makedirs(txt_folder, exist_ok=True)
+
 
     if args.trt:
         args.device = "gpu"
@@ -314,25 +346,14 @@ def main(exp, args):
     )
     current_time = time.localtime()
     if args.demo == "image":
-        image_demo(predictor, vis_folder, args.path, current_time, args.save_result)
+        image_demo(predictor, vis_folder, args.path, current_time, args.save_result,txt_folder)
     elif args.demo == "video" or args.demo == "webcam":
         imageflow_demo(predictor, vis_folder, current_time, args)
 
 
 if __name__ == "__main__":
     args = make_parser().parse_args()
-    #new arg
-   
-    # args.path="assets/dog.jpg"
-    # args.save_result=""
-    # args.conf=0.25
-    # args.nms=0.5
-    # args.tsize=640
-    # args.result="gpu"
-    # args.exp_file="exps/example/custom/yolox_s.py"
-    # args.ckpt="YOLOX_outputs/yolox_s/best_ckpt.pth"
-  
-    #end new arg
+
     exp = get_exp(args.exp_file, args.name)
 
     main(exp, args)
