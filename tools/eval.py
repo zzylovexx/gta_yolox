@@ -7,6 +7,7 @@ import os
 import random
 import warnings
 from loguru import logger
+from numpy import True_
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -39,9 +40,9 @@ def make_parser():
         type=str,
         help="url used to set up distributed training",
     )
-    parser.add_argument("-b", "--batch-size", type=int, default=64, help="batch size")
+    parser.add_argument("-b", "--batch-size", type=int, default=8, help="batch size")
     parser.add_argument(
-        "-d", "--devices", default=None, type=int, help="device for training"
+        "-d", "--devices", default=1, type=int, help="device for training"
     )
     parser.add_argument(
         "--num_machines", default=1, type=int, help="num of node for training"
@@ -56,8 +57,8 @@ def make_parser():
         type=str,
         help="please input your experiment description file",
     )
-    parser.add_argument("-c", "--ckpt", default=None, type=str, help="ckpt for eval")
-    parser.add_argument("--conf", default=None, type=float, help="test conf")
+    parser.add_argument("-c", "--ckpt", default="YOLOX_outputs/yolox_s/SE_module/best_ckpt.pth", type=str, help="ckpt for eval")
+    parser.add_argument("--conf", default=0.001, type=float, help="test conf")
     parser.add_argument("--nms", default=None, type=float, help="test nms threshold")
     parser.add_argument("--tsize", default=None, type=int, help="test img size")
     parser.add_argument("--seed", default=None, type=int, help="eval seed")
@@ -71,7 +72,7 @@ def make_parser():
     parser.add_argument(
         "--fuse",
         dest="fuse",
-        default=False,
+        default=True,
         action="store_true",
         help="Fuse conv and bn for testing.",
     )

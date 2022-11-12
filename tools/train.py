@@ -37,14 +37,14 @@ def make_parser():
     parser.add_argument(
         "-f",
         "--exp_file",
-        default='exps/example/custom/yolox_s.py',
+        default="exps/example/custom/yolox_s.py",
         type=str,
         help="plz input your experiment description file",
     )
     parser.add_argument(
         "--resume", default=False, action="store_true", help="resume training"
     )
-    parser.add_argument("-c", "--ckpt", default=None, type=str, help="checkpoint file")
+    parser.add_argument("-c", "--ckpt", default='yolox_s.pth', type=str, help="checkpoint file")
     parser.add_argument(
         "-e",
         "--start_epoch",

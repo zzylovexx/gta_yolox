@@ -15,7 +15,7 @@ from numpy import True_
 import torch
 #path is up to my computer path sometimes need it and sometimes don't very intersting
 import sys
-#sys.path.append('../')
+#sys.path.append("../")
 #sys.path.append(r'/home/haha/桌面/video_stream_and_track/hw2/YOLOX')
 from yolox.data.data_augment import ValTransform
 from yolox.data.datasets import COCO_CLASSES
@@ -34,7 +34,7 @@ def make_parser():
     parser.add_argument("-n", "--name", type=str, default=None, help="model name")
 
     parser.add_argument(
-        "--path", default="gtadataset/val/", help="path to images or video"
+        "--path", default="gtadataset/test/", help="path to images or video"
     )
     parser.add_argument("--camid", type=int, default=0, help="webcam demo camera id")
     parser.add_argument(
@@ -94,7 +94,7 @@ def make_parser():
     )
     parser.add_argument(
         "--savetxt",
-        default=False,
+        default=True,
         help="save txt or not"
     )
     return parser

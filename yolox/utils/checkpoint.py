@@ -36,6 +36,8 @@ def load_ckpt(model, ckpt):
 def save_checkpoint(state, is_best, save_dir, model_name=""):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
+    save_dir=os.path.join(save_dir,'SE_module')
+    os.makedirs(save_dir,exist_ok=True)
     filename = os.path.join(save_dir, model_name + "_ckpt.pth")
     torch.save(state, filename)
     if is_best:
